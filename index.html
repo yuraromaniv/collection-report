@@ -1,295 +1,265 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collection Dash</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <meta name="theme-color" content="#0f0f0e">
+    <title>Collection Report</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f3cf7a'/%3E%3Cstop offset='1' stop-color='%23c2814a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 22V14M16 22V9M23 22v-5' stroke='%231a1a19' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script type="module" src="js/main.js"></script>
 </head>
 
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar glass-panel collapsed" id="sidebar">
-            <div class="logo">
-                <i class="fa-solid fa-chart-pie"></i>
-                <h2 class="sidebar-text">Collection Dash</h2>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <span class="brand-mark"><i class="fa-solid fa-chart-simple"></i></span>
+                <div>
+                    <h1>Collection Report</h1>
+                    <p class="topbar-meta">
+                        <span class="topbar-date" id="current-date">—</span>
+                        <span class="sep topbar-date">·</span>
+                        <span id="last-updated">Loading…</span>
+                    </p>
+                </div>
             </div>
-            <nav>
-                <ul>
-                    <li class="active" title="Overview"><i class="fa-solid fa-house"></i> <span
-                            class="sidebar-text">Overview</span></li>
-                    <li id="add-location-btn" title="Add Location"><i class="fa-solid fa-plus"></i> <span
-                            class="sidebar-text">Add Location</span></li>
-                    <li id="history-btn" title="History"><i class="fa-solid fa-clock-rotate-left"></i>
-                        <span class="sidebar-text">History</span>
-                    </li>
-                    <li id="import-btn" title="Import from Excel"><i class="fa-solid fa-file-import"></i>
-                        <span class="sidebar-text">Import Excel</span>
-                    </li>
-                    <li id="reset-data-btn" class="danger" title="Clear Amounts"><i class="fa-solid fa-eraser"></i>
-                        <span class="sidebar-text">Clear Amounts</span>
-                    </li>
-                    <li id="auth-btn" title="Login">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        <span class="sidebar-text" id="auth-btn-text">Login</span>
-                    </li>
-                </ul>
-            </nav>
-            <div class="sidebar-footer">
-                <button id="sidebar-toggle" title="Toggle Sidebar">
-                    <i class="fa-solid fa-chevron-left"></i>
+            <div class="topbar-actions">
+                <button class="btn btn-ghost" data-action="open-history">
+                    <i class="fa-solid fa-clock-rotate-left"></i><span class="btn-label">History</span>
+                </button>
+                <button class="btn btn-ghost" id="auth-btn" data-action="auth">
+                    <i class="fa-solid fa-right-to-bracket"></i><span class="btn-label">Login</span>
                 </button>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <h1>Collection Report</h1>
-                <div class="header-actions">
-                    <button id="archive-report-btn" class="btn btn-secondary btn-sm"
-                        title="Archive current data to History">
-                        <i class="fa-solid fa-box-archive"></i> Archive Report
-                    </button>
-                    <button id="header-auth-btn" class="btn btn-secondary btn-sm" title="Login">
-                        <i class="fa-solid fa-right-to-bracket"></i> <span id="header-auth-btn-text">Login</span>
-                    </button>
-                    <div class="date-info" id="date-info">
-                        <div class="current-date" id="current-date">--/--/----</div>
-                        <div class="last-edited" id="last-edited">Last updated: --:--</div>
-                    </div>
-                </div>
-            </header>
-
-
-
-            <!-- Charts Section -->
-            <section class="charts-section">
-                <div class="chart-container glass-panel chart-large">
-                    <div class="chart-header">
-                        <h3>Goal Achievement Overview</h3>
-                        <div class="chart-legend">
-                            <span class="legend-badge success" title="100% +"><i class="fa-solid fa-circle"></i> <span
-                                    id="count-achieved">0</span></span>
-                            <span class="legend-badge warning" title="90-99%"><i class="fa-solid fa-circle"></i> <span
-                                    id="count-close">0</span></span>
-                            <span class="legend-badge orange" title="80-89%"><i class="fa-solid fa-circle"></i> <span
-                                    id="count-orange">0</span></span>
-                            <span class="legend-badge danger" title="0-79%"><i class="fa-solid fa-circle"></i> <span
-                                    id="count-behind">0</span></span>
-                        </div>
-                    </div>
-                    <div class="canvas-wrapper">
-                        <canvas id="overviewChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-container glass-panel chart-small">
-                    <div class="chart-header">
-                        <h3>Bonus Tiers</h3>
-                    </div>
-                    <div class="canvas-wrapper">
-                        <canvas id="tierChart"></canvas>
-                    </div>
-                    <div class="tier-legend"
-                        style="margin-top: 1.5rem; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-                        <div style="display: flex; align-items: center; gap: 0.4rem;"><i class="fa-solid fa-circle"
-                                style="color: #8b5cf6;"></i>Tier 1 (38% - 45%)</div>
-                        <div style="display: flex; align-items: center; gap: 0.4rem;"><i class="fa-solid fa-circle"
-                                style="color: #ec4899;"></i>Tier 2 (46% - 70%)</div>
-                        <div style="display: flex; align-items: center; gap: 0.4rem;"><i class="fa-solid fa-circle"
-                                style="color: #eab308;"></i>Tier 3 (71% - 100%)</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Locations Grid by Group -->
-            <div class="group-section">
-                <h2 class="group-title">Illinois</h2>
-                <div class="locations-grid" id="grid-illinois" data-group="Illinois"></div>
+        <!-- Admin tools: visible only when logged in and looking at live data -->
+        <div class="toolbar edit-only">
+            <div class="toolbar-inner">
+                <button class="tool" data-action="add-location"><i class="fa-solid fa-plus"></i>Add location</button>
+                <button class="tool" data-action="open-import"><i class="fa-solid fa-file-import"></i>Import Excel</button>
+                <button class="tool" id="sync-now-btn" data-action="sync-now"><i class="fa-solid fa-rotate"></i>Update from SharePoint</button>
+                <button class="tool" id="auto-sync-btn" data-action="toggle-auto-sync" aria-pressed="false"><i class="fa-solid fa-clock"></i><span>Auto-update: off</span></button>
+                <button class="tool" data-action="archive"><i class="fa-solid fa-box-archive"></i>Archive report</button>
+                <button class="tool" data-action="open-settings"><i class="fa-solid fa-gear"></i>Settings</button>
+                <button class="tool tool-danger" data-action="clear-amounts"><i class="fa-solid fa-eraser"></i>Clear amounts</button>
             </div>
-            <div class="group-section">
-                <h2 class="group-title">Wisconsin</h2>
-                <div class="locations-grid" id="grid-wisconsin" data-group="Wisconsin"></div>
-            </div>
-            <div class="group-section">
-                <h2 class="group-title">Indiana</h2>
-                <div class="locations-grid" id="grid-indiana" data-group="Indiana"></div>
-            </div>
-            <!-- Location Cards will be injected here -->
+        </div>
+    </header>
 
-
-            <!-- Detailed Table -->
-            <section class="data-table-section glass-panel">
-                <div class="table-header">
-                    <h3>Detailed Breakdown</h3>
-                </div>
-                <div class="table-responsive">
-                    <table id="data-table">
-                        <thead>
-                            <tr>
-                                <th>Location</th>
-                                <th>Target</th>
-                                <th>Collection</th>
-                                <th>% Achieved</th>
-                                <th>Remaining to Goal</th>
-                                <th style="text-align: right;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <!-- Table rows will be injected here -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
+    <div class="history-banner" id="history-banner" hidden>
+        <div class="history-banner-inner">
+            <i class="fa-solid fa-box-archive"></i>
+            <span>Viewing archived report: <strong id="history-banner-title">—</strong></span>
+            <button class="btn btn-sm btn-primary" data-action="exit-history">Back to live data</button>
+        </div>
     </div>
 
-    <!-- Modal for Adding/Editing Location -->
-    <div class="modal" id="location-modal">
-        <div class="modal-content glass-panel">
-            <span class="close-btn">&times;</span>
-            <h2 id="modal-title">Add Location</h2>
-            <form id="location-form">
-                <input type="hidden" id="location-id">
-                <div class="form-group">
-                    <label for="loc-name">Location Name</label>
-                    <input type="text" id="loc-name" required placeholder="e.g. Chicago North">
+    <main class="page">
+        <section class="kpis" id="kpis" aria-label="Summary"></section>
+
+        <section class="charts">
+            <article class="panel chart-panel">
+                <header class="panel-header">
+                    <div>
+                        <h2>Goal achievement</h2>
+                        <p class="panel-sub">Collection as % of monthly target, by clinic · line = 100%</p>
+                    </div>
+                    <ul class="status-legend" id="status-legend"></ul>
+                </header>
+                <div class="chart-scroll">
+                    <div class="chart-canvas">
+                        <canvas id="overview-chart" role="img" aria-label="Bar chart of collection as percent of target for every clinic"></canvas>
+                    </div>
                 </div>
-                <div class="form-group" style="display: none;">
-                    <label for="loc-group">State/Group</label>
-                    <select id="loc-group" required>
-                        <option value="Illinois">Illinois</option>
-                        <option value="Wisconsin">Wisconsin</option>
-                        <option value="Indiana">Indiana</option>
-                    </select>
+            </article>
+
+            <article class="panel tier-panel">
+                <header class="panel-header">
+                    <div>
+                        <h2>Bonus tier</h2>
+                        <p class="panel-sub">Clinics at 100%+ of target</p>
+                    </div>
+                </header>
+                <div class="tier-ring">
+                    <canvas id="tier-chart" role="img" aria-label="Progress toward bonus tiers"></canvas>
                 </div>
-                <div class="form-group">
-                    <label for="loc-target">Target Amount ($)</label>
-                    <input type="number" id="loc-target" required step="0.01" min="0" placeholder="100000">
+                <div id="tier-details" class="tier-details"></div>
+            </article>
+        </section>
+
+        <div id="groups" class="groups"></div>
+
+        <section class="panel table-panel">
+            <header class="panel-header">
+                <div>
+                    <h2>Detailed breakdown</h2>
+                    <p class="panel-sub">All clinics, grouped by state</p>
                 </div>
-                <hr class="modal-separator">
-                <div class="form-group">
-                    <label for="loc-finalize">Finalized ($)</label>
-                    <input type="number" id="loc-finalize" required step="0.01" min="0" placeholder="0">
+            </header>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>State</th>
+                            <th class="num">Target</th>
+                            <th class="num">Collection</th>
+                            <th class="num">Achieved</th>
+                            <th class="num">Remaining</th>
+                            <th class="actions-col edit-only"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add / edit location -->
+    <div class="modal" id="location-modal" role="dialog" aria-modal="true" aria-labelledby="location-modal-title" hidden>
+        <div class="modal-card">
+            <header class="modal-header">
+                <h2 id="location-modal-title">Add location</h2>
+                <button class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <form id="location-form" class="form" autocomplete="off">
+                <input type="hidden" name="id">
+                <label class="field">
+                    <span>Location name</span>
+                    <input type="text" name="name" required placeholder="e.g. Chicago North">
+                </label>
+                <div class="field-row">
+                    <label class="field">
+                        <span>State</span>
+                        <select name="group"></select>
+                    </label>
+                    <label class="field">
+                        <span>Target ($)</span>
+                        <input type="number" name="target" required step="0.01" min="0" placeholder="100000">
+                    </label>
                 </div>
-                <div class="form-group">
-                    <label for="loc-deposit">Deposit Slip ($)</label>
-                    <input type="number" id="loc-deposit" required step="0.01" min="0" placeholder="0">
+                <div class="field-row">
+                    <label class="field">
+                        <span>Finalized ($)</span>
+                        <input type="number" name="finalize" step="0.01" min="0" placeholder="0">
+                    </label>
+                    <label class="field">
+                        <span>Deposit slip ($)</span>
+                        <input type="number" name="deposit" step="0.01" min="0" placeholder="0">
+                    </label>
                 </div>
-                <div class="form-group">
-                    <label for="loc-sales">Collection ($)</label>
-                    <input type="number" id="loc-sales" required step="0.01" min="0" placeholder="0" readonly
-                        style="background-color: rgba(255, 255, 255, 0.05); cursor: not-allowed;">
+                <div class="form-total">
+                    <span>Collection (finalized + deposit)</span>
+                    <strong id="location-total">$0.00</strong>
                 </div>
-                <button type="submit" class="btn btn-primary">Save Location</button>
+                <footer class="modal-actions">
+                    <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </footer>
             </form>
         </div>
     </div>
 
-    <!-- History Modal -->
-    <div id="history-modal" class="modal">
-        <div class="modal-content glass-panel" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2>Archived Reports <span id="history-count"
-                        style="font-size:1rem;color:var(--text-muted);font-weight:400;">(0)</span></h2>
-                <span class="close-btn history-close-btn">&times;</span>
+    <!-- History -->
+    <div class="modal" id="history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title" hidden>
+        <div class="modal-card modal-wide">
+            <header class="modal-header">
+                <h2 id="history-modal-title">Archived reports <span class="muted" id="history-count"></span></h2>
+                <button class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <ul class="history-list" id="history-list"></ul>
+        </div>
+    </div>
+
+    <!-- Excel import -->
+    <div class="modal" id="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-modal-title" hidden>
+        <div class="modal-card modal-xl">
+            <header class="modal-header">
+                <h2 id="import-modal-title">Import from Excel</h2>
+                <button class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div id="import-step-file">
+                <label class="dropzone" id="import-dropzone">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <strong>Drop the Excel file here</strong>
+                    <span>or click to browse — .xlsx or .xls</span>
+                    <input type="file" id="import-file" accept=".xlsx,.xls" hidden>
+                </label>
             </div>
-            <div class="modal-body">
-                <ul id="history-list" class="history-list">
-                    <li style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading history...</li>
-                </ul>
+            <div id="import-step-preview" hidden>
+                <label class="field">
+                    <span>Month / sheet</span>
+                    <select id="import-sheet"></select>
+                </label>
+                <div id="import-preview"></div>
+                <footer class="modal-actions">
+                    <button type="button" class="btn btn-ghost" id="import-back"><i class="fa-solid fa-arrow-left"></i>Back</button>
+                    <button type="button" class="btn btn-primary" id="import-confirm"><i class="fa-solid fa-file-import"></i>Import data</button>
+                </footer>
             </div>
         </div>
     </div>
 
-    <!-- Import Modal -->
-    <div id="import-modal" class="modal">
-        <div class="modal-content glass-panel" style="max-width: 720px;">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-file-import" style="color: var(--accent-primary); margin-right: 0.5rem;"></i>Import from Excel</h2>
-                <span class="close-btn import-close-btn">&times;</span>
-            </div>
-            <div class="modal-body">
-                <!-- Step 1: File Selection -->
-                <div id="import-step-1">
-                    <div class="import-drop-zone" id="import-drop-zone">
-                        <i class="fa-solid fa-file-excel" style="font-size: 3rem; color: #22c55e; margin-bottom: 1rem; display:block;"></i>
-                        <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.95rem;">Drag &amp; drop your Excel file here, or</p>
-                        <label for="excel-file-input" class="btn btn-primary" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem;">
-                            <i class="fa-solid fa-folder-open"></i> Browse File
-                        </label>
-                        <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display:none;">
-                        <p style="font-size:0.8rem; color: var(--text-muted); margin-top: 1rem;">Supports .xlsx and .xls files</p>
-                    </div>
-                </div>
-                <!-- Step 2: Sheet Selection & Preview -->
-                <div id="import-step-2" style="display:none;">
-                    <div class="form-group" style="margin-bottom: 1.25rem;">
-                        <label for="import-sheet-select">Select Month / Sheet</label>
-                        <select id="import-sheet-select"></select>
-                    </div>
-                    <div id="import-preview" class="import-preview-container"></div>
-                    <div style="display:flex; gap:1rem; margin-top:1.5rem; justify-content:flex-end;">
-                        <button class="btn btn-secondary" id="import-back-btn">
-                            <i class="fa-solid fa-arrow-left"></i> Back
-                        </button>
-                        <button class="btn btn-primary" id="import-confirm-btn">
-                            <i class="fa-solid fa-file-import"></i> Import Data
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <!-- Settings -->
+    <div class="modal" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" hidden>
+        <div class="modal-card">
+            <header class="modal-header">
+                <h2 id="settings-modal-title">Settings</h2>
+                <button class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <form id="settings-form" class="form">
+                <label class="field">
+                    <span>SharePoint share link to the Excel file</span>
+                    <input type="url" name="sharepointUrl" placeholder="https://…sharepoint.com/:x:/g/…">
+                </label>
+                <p class="hint">Stored in Firebase under <code>config/</code>, readable only by logged-in admins — never in the site's source code.</p>
+                <footer class="modal-actions">
+                    <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </footer>
+            </form>
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <div id="login-modal" class="modal">
-        <div class="modal-content glass-panel" style="max-width: 400px;">
-            <div class="modal-header">
-                <h2>Admin Login</h2>
-                <span class="close-btn login-close-btn">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" name="email" autocomplete="username" required placeholder="admin@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" name="password" autocomplete="current-password" required placeholder="••••••••">
-                    </div>
-                    <div id="login-error" class="error-message hidden" style="color: var(--danger); margin-bottom: 1rem; font-size: 0.9rem;"></div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-                </form>
-            </div>
+    <!-- Login -->
+    <div class="modal" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title" hidden>
+        <div class="modal-card modal-narrow">
+            <header class="modal-header">
+                <h2 id="login-modal-title">Admin login</h2>
+                <button class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <form id="login-form" class="form">
+                <label class="field">
+                    <span>Email</span>
+                    <input type="email" name="email" autocomplete="username" required>
+                </label>
+                <label class="field">
+                    <span>Password</span>
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </label>
+                <p class="form-error" id="login-error" hidden></p>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
         </div>
     </div>
 
-    <!-- Read-Only Banner (Hidden by default) -->
-    <div id="read-only-banner" class="banner hidden">
-        <div class="banner-content">
-            <i class="fa-solid fa-eye"></i>
-            <span><strong>Viewing Archived Report:</strong> <span id="viewing-report-date">---</span></span>
-            <button id="exit-history-btn" class="btn btn-primary"
-                style="margin-left:auto; padding:0.4rem 1rem; font-size:0.9rem;">Back to Current Data</button>
-        </div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+        <i class="toast-icon fa-solid fa-circle-info"></i>
+        <span class="toast-msg"></span>
     </div>
-
-    <!-- Firebase Configuration -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script src="app.js"></script>
 </body>
 
 </html>

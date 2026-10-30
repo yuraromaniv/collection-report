@@ -1,0 +1,17 @@
+# Dependencies (only needed for tools/)
+node_modules/
+
+# Secrets — never commit
+.env
+
+# Excel reports contain financial data
+*.xlsx
+*.xls
+
+# Old version kept locally for reference only (contained credentials)
+_legacy/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
