@@ -16,6 +16,15 @@ export function formatDateTime(ts) {
     });
 }
 
+// "5:45 PM" today, "Oct 29, 5:45 PM" otherwise.
+export function formatTime(ts) {
+    const date = new Date(ts);
+    const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return date.toDateString() === new Date().toDateString()
+        ? time
+        : `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${time}`;
+}
+
 export function generateId() {
     return Math.random().toString(36).slice(2, 11);
 }

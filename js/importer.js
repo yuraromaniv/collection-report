@@ -1,20 +1,14 @@
-// Getting numbers in: manual Excel import, SharePoint sync, auto-update, settings.
+// Getting numbers in by hand: Excel import and the SharePoint link setting.
+// Automatic SharePoint sync runs on GitHub Actions (tools/sync.js).
 
 /* global XLSX */
-import { AUTO_SYNC_INTERVAL_MS, CORS_PROXY } from './config.js';
 import { getSharePointUrl, saveLocations, setSharePointUrl } from './data.js';
-import { dataSheetNames, findLocation, mergeImported, parseRows, sheetRows } from './excel.js';
+import { dataSheetNames, findLocation, mergeImported, parseRows, pickReportSheet, sheetRows } from './excel.js';
 import { pctOf, statusOf } from './metrics.js';
 import { canEdit, state } from './state.js';
 import { closeModal, escapeHtml, formatCurrency, openModal, showToast } from './utils.js';
 
 let workbook = null;
-
-async function applyImport(rows, source) {
-    const { locations, updated, added } = mergeImported(state.locations, rows);
-    await saveLocations(locations);
-    showToast(`${source}: ${updated} updated${added ? `, ${added} added` : ''}`, 'success', 6000);
-}
 
 // ─── Manual Excel import ─────────────────────────────────────────────────────
 
@@ -49,7 +43,7 @@ function readFile(file) {
             if (!sheets.length) throw new Error('No sheets with targets found in this file.');
 
             sheetSelect.innerHTML = sheets.map(name => `<option>${escapeHtml(name)}</option>`).join('');
-            sheetSelect.value = sheets[sheets.length - 1]; // latest month
+            sheetSelect.value = pickReportSheet(XLSX, workbook);
             stepFile.hidden = true;
             stepPreview.hidden = false;
             renderPreview();
@@ -111,89 +105,15 @@ async function confirmImport() {
     const button = document.getElementById('import-confirm');
     button.disabled = true;
     try {
-        await applyImport(selectedRows(), `Imported “${sheetSelect.value}”`);
+        const { locations, updated, added } = mergeImported(state.locations, selectedRows());
+        await saveLocations(locations);
         closeModal('import-modal');
+        showToast(`Imported “${sheetSelect.value}”: ${updated} updated${added ? `, ${added} added` : ''}`, 'success', 6000);
     } catch (error) {
         showToast(`Import failed: ${error.message}`, 'error', 8000);
     } finally {
         button.disabled = false;
     }
-}
-
-// ─── SharePoint sync ─────────────────────────────────────────────────────────
-
-function downloadUrl(shareUrl) {
-    const url = new URL(shareUrl);
-    url.searchParams.set('download', '1');
-    return url.toString();
-}
-
-async function fetchWorkbook(shareUrl) {
-    const url = downloadUrl(shareUrl);
-    let response;
-    try {
-        response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    } catch (directError) {
-        console.warn('[SharePoint] Direct download blocked, using proxy:', directError.message);
-        response = await fetch(CORS_PROXY + encodeURIComponent(url));
-        if (!response.ok) throw new Error(`Proxy HTTP ${response.status}`);
-    }
-    return XLSX.read(new Uint8Array(await response.arrayBuffer()), { type: 'array' });
-}
-
-export async function syncFromSharePoint({ silent = false } = {}) {
-    if (!canEdit()) return;
-    const button = document.getElementById('sync-now-btn');
-    if (button.classList.contains('is-syncing')) return;
-
-    try {
-        const shareUrl = await getSharePointUrl();
-        if (!shareUrl) {
-            if (!silent) {
-                showToast('Add the SharePoint link in Settings first', 'info', 6000);
-                openSettings();
-            }
-            return;
-        }
-
-        button.classList.add('is-syncing');
-        if (!silent) showToast('Updating from SharePoint…', 'loading', 0);
-
-        const book = await fetchWorkbook(shareUrl);
-        const sheets = dataSheetNames(XLSX, book);
-        if (!sheets.length) throw new Error('No sheets with targets found in the file.');
-        const sheet = sheets[sheets.length - 1];
-        const rows = parseRows(sheetRows(XLSX, book.Sheets[sheet]));
-        if (!rows.length) throw new Error(`Sheet “${sheet}” has no clinics.`);
-
-        await applyImport(rows, `Synced “${sheet}”`);
-    } catch (error) {
-        console.error('[SharePoint] Sync failed:', error);
-        showToast(`Sync failed: ${error.message}`, 'error', 8000);
-    } finally {
-        button.classList.remove('is-syncing');
-    }
-}
-
-// ─── Auto-update ─────────────────────────────────────────────────────────────
-
-let autoSyncTimer = null;
-
-export function setAutoSync(enabled) {
-    clearInterval(autoSyncTimer);
-    autoSyncTimer = enabled ? setInterval(() => syncFromSharePoint({ silent: true }), AUTO_SYNC_INTERVAL_MS) : null;
-
-    const button = document.getElementById('auto-sync-btn');
-    button.setAttribute('aria-pressed', String(enabled));
-    button.querySelector('span').textContent = `Auto-update: ${enabled ? 'on' : 'off'}`;
-}
-
-export function toggleAutoSync() {
-    if (!canEdit()) return;
-    const enabled = !autoSyncTimer;
-    setAutoSync(enabled);
-    showToast(enabled ? 'Auto-update on — every 5 minutes while this page is open' : 'Auto-update off', 'info', 3000);
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
@@ -216,7 +136,7 @@ async function saveSettings(event) {
     try {
         await setSharePointUrl(settingsForm.elements.sharepointUrl.value.trim());
         closeModal('settings-modal');
-        showToast('Settings saved', 'success');
+        showToast('Settings saved — the next automatic sync will use this link', 'success', 6000);
     } catch (error) {
         showToast(`Could not save settings: ${error.message}`, 'error', 8000);
     }

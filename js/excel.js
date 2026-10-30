@@ -2,7 +2,7 @@
 // Pure functions: the XLSX library is passed in, so the same code runs in the
 // browser and in the Node tools (tools/*.js).
 
-import { EXCEL_LAYOUT, GROUPS } from './config.js';
+import { EXCEL_LAYOUT, GROUPS, REPORT_TIMEZONE } from './config.js';
 import { generateId } from './utils.js';
 
 export function sheetRows(XLSX, sheet) {
@@ -34,11 +34,33 @@ export function parseRows(rows) {
 
             const finalize = Number(finalized[col]) || 0;
             const deposit = Number(deposits[col]) || 0;
-            result.push({ name, target, finalize, deposit, sales: finalize + deposit });
+            const sales = Math.round((finalize + deposit) * 100) / 100;
+            result.push({ name, target, finalize, deposit, sales });
         }
     });
 
     return result;
+}
+
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july',
+    'august', 'september', 'october', 'november', 'december'];
+
+// Targets are pre-filled for the whole year, so "last sheet with data" would
+// always be September. Walk back from the current month to the first month
+// sheet that already has collections (at the start of a month that is the
+// previous one).
+export function pickReportSheet(XLSX, workbook, now = new Date()) {
+    const sheets = dataSheetNames(XLSX, workbook);
+    const month = MONTHS.indexOf(now.toLocaleString('en-US', { month: 'long', timeZone: REPORT_TIMEZONE }).toLowerCase());
+    const hasCollections = name => parseRows(sheetRows(XLSX, workbook.Sheets[name])).some(row => row.sales > 0);
+
+    for (let back = 0; back < 12; back++) {
+        const monthName = MONTHS[(month - back + 12) % 12];
+        const sheet = sheets.find(name => name.trim().toLowerCase().startsWith(monthName));
+        if (sheet && hasCollections(sheet)) return sheet;
+    }
+    // Workbooks without month-named sheets: keep the old "last sheet" rule.
+    return sheets[sheets.length - 1];
 }
 
 // ─── Matching Excel names to existing locations ──────────────────────────────

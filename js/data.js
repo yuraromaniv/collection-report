@@ -45,6 +45,9 @@ export function showLive() {
         }, onReadError),
         onValue(ref(db, 'meta/lastUpdated'), snap => {
             setState({ lastUpdated: snap.val() || 0 });
+        }, onReadError),
+        onValue(ref(db, 'meta/lastSync'), snap => {
+            setState({ lastSync: snap.val() });
         }, onReadError)
     ];
     stopLive = () => stops.forEach(stop => stop());
