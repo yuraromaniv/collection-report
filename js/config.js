@@ -39,9 +39,9 @@ export const REPORT_TIMEZONE = 'America/Chicago';
 export const SYNC_WORKFLOW_URL = 'https://github.com/yuraromaniv/collection-report/actions/workflows/sync-sharepoint.yml';
 
 // Where clinics live in the monthly Excel sheet (0-based row indexes).
-// Each block is a row of clinic names with their numbers in the same column.
+// Each block is a row of clinic names with their numbers in the same column;
+// a row may hold any number of clinics.
 export const EXCEL_LAYOUT = {
-    maxColumns: 16,
     blocks: [
         { names: 1, targets: 2, finalized: 16, deposit: 17 },
         { names: 7, targets: 8, finalized: 20, deposit: 21 }
