@@ -34,8 +34,8 @@ export const TIERS = [
 // "Current month" is decided in the clinics' time zone.
 export const REPORT_TIMEZONE = 'America/Chicago';
 
-// SharePoint is synced by a scheduled GitHub Action (.github/workflows/sync-sharepoint.yml);
-// this page lets an admin run it right away.
+// SharePoint is synced only on demand, by a GitHub Action
+// (.github/workflows/sync-sharepoint.yml) that "Sync now" opens.
 export const SYNC_WORKFLOW_URL = 'https://github.com/yuraromaniv/collection-report/actions/workflows/sync-sharepoint.yml';
 
 // Where clinics live in the monthly Excel sheet (0-based row indexes).

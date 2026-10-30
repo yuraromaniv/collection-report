@@ -1,5 +1,5 @@
 // Getting numbers in by hand: Excel import and the SharePoint link setting.
-// Automatic SharePoint sync runs on GitHub Actions (tools/sync.js).
+// SharePoint sync runs on GitHub Actions when "Sync now" is pressed (tools/sync.js).
 
 /* global XLSX */
 import { getSharePointUrl, saveLocations, setSharePointUrl } from './data.js';
@@ -136,7 +136,7 @@ async function saveSettings(event) {
     try {
         await setSharePointUrl(settingsForm.elements.sharepointUrl.value.trim());
         closeModal('settings-modal');
-        showToast('Settings saved — the next automatic sync will use this link', 'success', 6000);
+        showToast('Settings saved — Sync now will use this link', 'success', 6000);
     } catch (error) {
         showToast(`Could not save settings: ${error.message}`, 'error', 8000);
     }

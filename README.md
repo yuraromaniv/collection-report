@@ -67,16 +67,17 @@ npm start            # http://localhost:8080
 4. **Realtime Database → Rules** — вставити вміст [firebase/database.rules.json](firebase/database.rules.json), замінивши `YOUR_ADMIN_EMAIL` на email адміна. Читання даних лишається публічним, запис і налаштування — тільки для адміна.
 5. На сайті: **Login → Settings** — вставити посилання SharePoint на Excel-файл. Воно зберігається в базі (`config/sharepointUrl`), а не в коді.
 
-## Автоматична синхронізація з SharePoint
+## Синхронізація з SharePoint (тільки вручну)
 
-GitHub Actions ([.github/workflows/sync-sharepoint.yml](.github/workflows/sync-sharepoint.yml)) кожні 15 хвилин:
+Дані оновлюються **лише коли адмін натискає Sync now** — автоматичного розкладу немає.
+Кнопка відкриває GitHub Actions ([.github/workflows/sync-sharepoint.yml](.github/workflows/sync-sharepoint.yml)), там — **Run workflow**. Запуск:
 
 1. логіниться у Firebase як адмін;
 2. бере посилання SharePoint із налаштувань сайту;
 3. скачує Excel і вибирає аркуш **поточного місяця** (якщо в ньому ще немає сум — попередній);
 4. записує дані в базу, тільки якщо щось змінилося.
 
-Статус видно на сайті: у шапці («October sheet, checked 5:45 PM») і в панелі адміна.
+Результат видно на сайті через ~1 хв: у шапці («October sheet, synced 6:05 PM») і в панелі адміна.
 
 **Налаштування (один раз):** GitHub → **Settings → Secrets and variables → Actions → New repository secret**:
 
@@ -86,10 +87,8 @@ GitHub Actions ([.github/workflows/sync-sharepoint.yml](.github/workflows/sync-s
 | `ADMIN_PASSWORD` | пароль адміна у Firebase       |
 
 Посилання SharePoint має бути типу **«Anyone with the link can view»**.
-Запустити вручну: **Actions → Sync from SharePoint → Run workflow** (або кнопка **Sync now** на сайті).
 
 > Логи Actions у публічному репозиторії публічні — скрипт не друкує ні посилання, ні суми.
-> GitHub вимикає розклад, якщо в репозиторії 60 днів не було комітів; тоді прийде лист — достатньо натиснути **Enable workflow**.
 
 ## Інструменти (Node)
 
