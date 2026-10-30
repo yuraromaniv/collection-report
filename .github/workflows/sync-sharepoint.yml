@@ -1,5 +1,6 @@
 # Pulls the Excel report from SharePoint into Firebase — only when started by
-# hand ("Sync now" on the dashboard → Run workflow). There is no schedule.
+# hand: "Sync now" on the dashboard (via the GitHub API) or "Run workflow"
+# here on GitHub. There is no schedule.
 # Needs two repository secrets: ADMIN_EMAIL and ADMIN_PASSWORD (the dashboard's
 # admin login). The SharePoint link itself is set in the dashboard's Settings.
 name: Sync from SharePoint

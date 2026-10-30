@@ -5,7 +5,7 @@ import { login, logout, showLive, watchAuth } from './data.js';
 import {
     archiveCurrent, deleteReportConfirm, exitHistory, openHistory, renameReportPrompt, viewReport
 } from './history.js';
-import { initImporter, openImport, openSettings } from './importer.js';
+import { initImporter, openImport, openSettings, syncNow } from './importer.js';
 import { clearAmounts, deleteLocation, initLocations, initSortable, openLocationModal } from './locations.js';
 import { summarize } from './metrics.js';
 import {
@@ -54,6 +54,7 @@ const actions = {
     'edit-location': el => openLocationModal(el.dataset.id),
     'delete-location': el => deleteLocation(el.dataset.id),
     'clear-amounts': clearAmounts,
+    'sync-now': syncNow,
     'open-import': openImport,
     'open-settings': openSettings
 };

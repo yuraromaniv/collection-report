@@ -327,7 +327,17 @@ body:not(.can-edit) .edit-only {
     color: var(--status-critical);
 }
 
-/* Automatic SharePoint sync status (written by the GitHub Action) */
+#sync-now-btn.is-syncing {
+    color: var(--text);
+    cursor: progress;
+}
+
+#sync-now-btn.is-syncing i {
+    color: var(--text);
+    animation: spin 1s linear infinite;
+}
+
+/* SharePoint sync status (written by the GitHub Action) */
 .sync-status {
     display: inline-flex;
     align-items: center;
@@ -1118,6 +1128,10 @@ body:not(.can-edit) .edit-only {
 .hint {
     font-size: 12.5px;
     color: var(--text-muted);
+}
+
+.hint a {
+    color: var(--text);
 }
 
 .hint code {

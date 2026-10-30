@@ -50,7 +50,7 @@
             <div class="toolbar-inner">
                 <button class="tool" data-action="add-location"><i class="fa-solid fa-plus"></i>Add location</button>
                 <button class="tool" data-action="open-import"><i class="fa-solid fa-file-import"></i>Import Excel</button>
-                <a class="tool" id="sync-now-link" target="_blank" rel="noopener" title="Opens GitHub — press “Run workflow” there"><i class="fa-solid fa-rotate"></i>Sync now</a>
+                <button class="tool" id="sync-now-btn" data-action="sync-now" title="Pull the latest numbers from SharePoint"><i class="fa-solid fa-rotate"></i>Sync now</button>
                 <button class="tool" data-action="archive"><i class="fa-solid fa-box-archive"></i>Archive report</button>
                 <button class="tool" data-action="open-settings"><i class="fa-solid fa-gear"></i>Settings</button>
                 <span class="sync-status" id="sync-status"></span>
@@ -225,7 +225,17 @@
                     <span>SharePoint share link to the Excel file</span>
                     <input type="url" name="sharepointUrl" placeholder="https://…sharepoint.com/:x:/g/…">
                 </label>
-                <p class="hint">Must be an “Anyone with the link can view” link. Stored in Firebase under <code>config/</code>, readable only by the admin — never in the site's source code. Used each time you press <strong>Sync now</strong>.</p>
+                <p class="hint">Must be an “Anyone with the link can view” link.</p>
+                <label class="field">
+                    <span>GitHub token for one-click Sync now</span>
+                    <input type="password" name="githubToken" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+                </label>
+                <p class="hint">
+                    <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a>:
+                    only the <code>collection-report</code> repository, permission <strong>Actions: Read and write</strong>.
+                    Without it, Sync now opens GitHub instead.
+                </p>
+                <p class="hint">Both are stored in Firebase under <code>config/</code>, readable only by the admin — never in the site's source code.</p>
                 <footer class="modal-actions">
                     <button type="button" class="btn btn-ghost" data-close>Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
