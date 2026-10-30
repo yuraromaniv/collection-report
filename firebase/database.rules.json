@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "locations": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'YOUR_ADMIN_EMAIL'"
+    },
+    "meta": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'YOUR_ADMIN_EMAIL'"
+    },
+    "history": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'YOUR_ADMIN_EMAIL'"
+    },
+    "config": {
+      ".read": "auth != null && auth.token.email === 'YOUR_ADMIN_EMAIL'",
+      ".write": "auth != null && auth.token.email === 'YOUR_ADMIN_EMAIL'"
+    }
+  }
+}
