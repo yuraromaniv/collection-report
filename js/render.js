@@ -22,7 +22,7 @@ export function renderChrome(state) {
     if (state.history) document.getElementById('history-banner-title').textContent = state.history.title;
 
     const sync = state.lastSync;
-    const checked = !state.history && sync?.ok ? ` · ${sync.sheet || 'SharePoint'} sheet, checked ${formatTime(sync.at)}` : '';
+    const checked = !state.history && sync?.ok ? ` · ${sync.sheet || 'SharePoint'} sheet, synced ${formatTime(sync.at)}` : '';
     document.getElementById('last-updated').textContent = !state.loaded
         ? 'Loading…'
         : state.history
@@ -39,11 +39,11 @@ function renderSyncStatus(sync) {
     el.classList.toggle('is-idle', !sync);
 
     if (!sync) {
-        el.innerHTML = '<i class="fa-solid fa-circle-info"></i>Auto-sync not set up yet';
+        el.innerHTML = '<i class="fa-solid fa-circle-info"></i>Not synced yet';
     } else if (sync.ok) {
-        el.innerHTML = `<i class="fa-solid fa-circle-check"></i>Auto-sync · ${escapeHtml(sync.sheet || '')} · ${formatTime(sync.at)}`;
+        el.innerHTML = `<i class="fa-solid fa-circle-check"></i>Last sync · ${escapeHtml(sync.sheet || '')} · ${formatTime(sync.at)}`;
     } else {
-        el.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>Auto-sync failed ${formatTime(sync.at)}`;
+        el.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>Last sync failed ${formatTime(sync.at)}`;
     }
     el.title = sync?.message || '';
 }

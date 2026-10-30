@@ -1,11 +1,12 @@
 // Pulls the monthly Excel report into Firebase.
 //
-// Runs every 15 minutes on GitHub Actions (.github/workflows/sync-sharepoint.yml):
-// downloads the workbook from the SharePoint link saved in the dashboard's
-// Settings, picks the current month's sheet and saves it if anything changed.
+// Runs on GitHub Actions when an admin presses "Sync now"
+// (.github/workflows/sync-sharepoint.yml): downloads the workbook from the
+// SharePoint link saved in the dashboard's Settings, picks the current
+// month's sheet and saves it if anything changed.
 //
 // Locally (credentials in .env, see .env.example):
-//   npm run sync                                  same as the scheduled job
+//   npm run sync                                  same as "Sync now"
 //   npm run sync -- "C:/path/report.xlsx"         from a local file instead
 //   node tools/sync.js "<sharepoint link>" --dry-run   only check the link, no Firebase
 //
@@ -88,12 +89,9 @@ function changed(before, after) {
 
 const needsFirebase = !dryRun || !source;
 if (needsFirebase && (!ADMIN_EMAIL || !ADMIN_PASSWORD)) {
-    if (GITHUB_ACTIONS) {
-        // Not configured yet: skip quietly instead of failing every 15 minutes.
-        console.log('::notice::Add the ADMIN_EMAIL and ADMIN_PASSWORD repository secrets to turn on the SharePoint sync.');
-        process.exit(0);
-    }
-    console.error('Set ADMIN_EMAIL and ADMIN_PASSWORD (see .env.example), or pass a file/link with --dry-run.');
+    console.error(GITHUB_ACTIONS
+        ? '::error::Add the ADMIN_EMAIL and ADMIN_PASSWORD repository secrets (Settings → Secrets and variables → Actions).'
+        : 'Set ADMIN_EMAIL and ADMIN_PASSWORD (see .env.example), or pass a file/link with --dry-run.');
     process.exit(1);
 }
 
