@@ -30,10 +30,13 @@ export const TIERS = [
     { name: 'Tier 3', min: 24, color: '--tier-3' }  // 24+ clinics
 ];
 
-export const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+// The Excel workbook has one sheet per month ("October", "November", …).
+// "Current month" is decided in the clinics' time zone.
+export const REPORT_TIMEZONE = 'America/Chicago';
 
-// Used only when SharePoint blocks a direct browser download (CORS).
-export const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+// SharePoint is synced by a scheduled GitHub Action (.github/workflows/sync-sharepoint.yml);
+// this page lets an admin run it right away.
+export const SYNC_WORKFLOW_URL = 'https://github.com/yuraromaniv/collection-report/actions/workflows/sync-sharepoint.yml';
 
 // Where clinics live in the monthly Excel sheet (0-based row indexes).
 // Each block is a row of clinic names with their numbers in the same column.

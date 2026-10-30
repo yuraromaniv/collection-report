@@ -1,9 +1,9 @@
 // Turns state into HTML for everything except the two canvases (charts.js).
 
-import { GROUPS, STATUS_LEVELS, TIERS } from './config.js';
+import { GROUPS, STATUS_LEVELS, SYNC_WORKFLOW_URL, TIERS } from './config.js';
 import { closestToTarget, pctOf, remainingOf, sortByGroup, statusOf, tierRange } from './metrics.js';
 import { canEdit } from './state.js';
-import { escapeHtml, formatCurrency, formatCurrencyWhole, formatDateTime, formatPercent } from './utils.js';
+import { escapeHtml, formatCurrency, formatCurrencyWhole, formatDateTime, formatPercent, formatTime } from './utils.js';
 
 const RING_RADIUS = 28;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -21,11 +21,31 @@ export function renderChrome(state) {
     banner.hidden = !state.history;
     if (state.history) document.getElementById('history-banner-title').textContent = state.history.title;
 
+    const sync = state.lastSync;
+    const checked = !state.history && sync?.ok ? ` · ${sync.sheet || 'SharePoint'} sheet, checked ${formatTime(sync.at)}` : '';
     document.getElementById('last-updated').textContent = !state.loaded
         ? 'Loading…'
         : state.history
             ? `Archived ${formatDateTime(state.history.timestamp)}`
-            : state.lastUpdated ? `Updated ${formatDateTime(state.lastUpdated)}` : 'Not updated yet';
+            : (state.lastUpdated ? `Updated ${formatDateTime(state.lastUpdated)}` : 'Not updated yet') + checked;
+
+    renderSyncStatus(sync);
+}
+
+function renderSyncStatus(sync) {
+    document.getElementById('sync-now-link').href = SYNC_WORKFLOW_URL;
+    const el = document.getElementById('sync-status');
+    el.classList.toggle('is-failed', !!sync && !sync.ok);
+    el.classList.toggle('is-idle', !sync);
+
+    if (!sync) {
+        el.innerHTML = '<i class="fa-solid fa-circle-info"></i>Auto-sync not set up yet';
+    } else if (sync.ok) {
+        el.innerHTML = `<i class="fa-solid fa-circle-check"></i>Auto-sync · ${escapeHtml(sync.sheet || '')} · ${formatTime(sync.at)}`;
+    } else {
+        el.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>Auto-sync failed ${formatTime(sync.at)}`;
+    }
+    el.title = sync?.message || '';
 }
 
 export function renderKpis(summary) {

@@ -302,7 +302,9 @@ body:not(.can-edit) .edit-only {
     color: var(--text-2);
     font-size: 13px;
     font-weight: 500;
+    text-decoration: none;
     white-space: nowrap;
+    cursor: pointer;
     transition: background-color 0.15s, color 0.15s;
 }
 
@@ -320,27 +322,37 @@ body:not(.can-edit) .edit-only {
     color: var(--text);
 }
 
-.tool-danger {
-    margin-left: auto;
-}
-
 .tool-danger:hover,
 .tool-danger:hover i {
     color: var(--status-critical);
 }
 
-#auto-sync-btn[aria-pressed="true"] {
-    background: rgba(var(--status-good-rgb), 0.12);
-    color: var(--text);
+/* Automatic SharePoint sync status (written by the GitHub Action) */
+.sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 0 8px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
-#auto-sync-btn[aria-pressed="true"] i {
+.sync-status i {
     color: var(--status-good);
-    animation: pulse 2s ease-in-out infinite;
 }
 
-#sync-now-btn.is-syncing i {
-    animation: spin 1s linear infinite;
+.sync-status.is-idle i {
+    color: var(--text-muted);
+}
+
+.sync-status.is-failed {
+    color: var(--text-2);
+}
+
+.sync-status.is-failed i {
+    color: var(--status-warning);
 }
 
 /* History banner */
@@ -1279,12 +1291,6 @@ body:not(.can-edit) .edit-only {
     }
 }
 
-@keyframes pulse {
-    50% {
-        opacity: 0.5;
-    }
-}
-
 @keyframes fade-in {
     from {
         opacity: 0;
@@ -1353,10 +1359,6 @@ body:not(.can-edit) .edit-only {
     .toolbar-inner {
         flex-wrap: nowrap;
         overflow-x: auto;
-    }
-
-    .tool-danger {
-        margin-left: 0;
     }
 
     .history-banner-inner {

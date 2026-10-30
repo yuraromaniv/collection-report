@@ -1,0 +1,35 @@
+# Pulls the Excel report from SharePoint into Firebase every 15 minutes.
+# Needs two repository secrets: ADMIN_EMAIL and ADMIN_PASSWORD (the dashboard's
+# admin login). The SharePoint link itself is set in the dashboard's Settings.
+name: Sync from SharePoint
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sharepoint-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: node tools/sync.js
+        env:
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}

@@ -5,7 +5,7 @@ import { login, logout, showLive, watchAuth } from './data.js';
 import {
     archiveCurrent, deleteReportConfirm, exitHistory, openHistory, renameReportPrompt, viewReport
 } from './history.js';
-import { initImporter, openImport, openSettings, setAutoSync, syncFromSharePoint, toggleAutoSync } from './importer.js';
+import { initImporter, openImport, openSettings } from './importer.js';
 import { clearAmounts, deleteLocation, initLocations, initSortable, openLocationModal } from './locations.js';
 import { summarize } from './metrics.js';
 import {
@@ -55,8 +55,6 @@ const actions = {
     'delete-location': el => deleteLocation(el.dataset.id),
     'clear-amounts': clearAmounts,
     'open-import': openImport,
-    'sync-now': () => syncFromSharePoint(),
-    'toggle-auto-sync': toggleAutoSync,
     'open-settings': openSettings
 };
 
@@ -115,13 +113,7 @@ document.getElementById('current-date').textContent = new Date().toLocaleDateStr
     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
 });
 
-let wasAdmin = false;
-onStateChange(() => {
-    // Logging out stops the background SharePoint polling.
-    if (wasAdmin && !isAdmin()) setAutoSync(false);
-    wasAdmin = isAdmin();
-    scheduleRender();
-});
+onStateChange(scheduleRender);
 
 initCharts();
 initLocations();

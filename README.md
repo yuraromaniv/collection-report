@@ -31,10 +31,13 @@ js/
   charts.js           графіки (Chart.js)
   locations.js        додати / редагувати / видалити / перетягнути клініку
   history.js          архів звітів
-  importer.js         імпорт Excel, синхронізація з SharePoint, налаштування
+  importer.js         ручний імпорт Excel, налаштування
   excel.js            парсинг Excel (спільний для сайту й tools/)
   utils.js            форматування, модалки, toast
-tools/                Node-скрипти для локальної роботи (на сайті не використовуються)
+tools/
+  sync.js             синхронізація SharePoint → Firebase (запускає GitHub Actions)
+  inspect-excel.js    показати, як читається Excel-файл
+.github/workflows/    розклад автосинхронізації
 firebase/             правила бази даних
 ```
 
@@ -64,16 +67,44 @@ npm start            # http://localhost:8080
 4. **Realtime Database → Rules** — вставити вміст [firebase/database.rules.json](firebase/database.rules.json), замінивши `YOUR_ADMIN_EMAIL` на email адміна. Читання даних лишається публічним, запис і налаштування — тільки для адміна.
 5. На сайті: **Login → Settings** — вставити посилання SharePoint на Excel-файл. Воно зберігається в базі (`config/sharepointUrl`), а не в коді.
 
+## Автоматична синхронізація з SharePoint
+
+GitHub Actions ([.github/workflows/sync-sharepoint.yml](.github/workflows/sync-sharepoint.yml)) кожні 15 хвилин:
+
+1. логіниться у Firebase як адмін;
+2. бере посилання SharePoint із налаштувань сайту;
+3. скачує Excel і вибирає аркуш **поточного місяця** (якщо в ньому ще немає сум — попередній);
+4. записує дані в базу, тільки якщо щось змінилося.
+
+Статус видно на сайті: у шапці («October sheet, checked 5:45 PM») і в панелі адміна.
+
+**Налаштування (один раз):** GitHub → **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Name             | Value                         |
+|------------------|-------------------------------|
+| `ADMIN_EMAIL`    | email адміна у Firebase        |
+| `ADMIN_PASSWORD` | пароль адміна у Firebase       |
+
+Посилання SharePoint має бути типу **«Anyone with the link can view»**.
+Запустити вручну: **Actions → Sync from SharePoint → Run workflow** (або кнопка **Sync now** на сайті).
+
+> Логи Actions у публічному репозиторії публічні — скрипт не друкує ні посилання, ні суми.
+> GitHub вимикає розклад, якщо в репозиторії 60 днів не було комітів; тоді прийде лист — достатньо натиснути **Enable workflow**.
+
 ## Інструменти (Node)
 
 ```bash
 npm install
 
 # Подивитися, як сайт прочитає Excel-файл
-npm run inspect -- "C:/path/CR.xlsx" [Sheet]
+npm run inspect -- "C:/path/report.xlsx" [Sheet]
 
-# Залити Excel у базу з командного рядка (облікові дані — у .env, див. .env.example)
-npm run sync -- "C:/path/CR.xlsx" [Sheet]
+# Перевірити посилання SharePoint, нічого не записуючи
+node tools/sync.js "<посилання>" --dry-run
+
+# Те саме, що робить GitHub Actions (облікові дані — у .env, див. .env.example)
+npm run sync
+npm run sync -- "C:/path/report.xlsx"   # з локального файлу
 ```
 
 > `.env`, Excel-файли та `node_modules` не комітяться (див. `.gitignore`).

@@ -4,6 +4,7 @@
 export const state = {
     locations: [],
     lastUpdated: 0,
+    lastSync: null, // { at, ok, sheet, message } written by tools/sync.js
     loaded: false,
     user: null,
     history: null // { key, title, timestamp } while viewing an archived report
