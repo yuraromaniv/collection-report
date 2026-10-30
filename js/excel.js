@@ -27,7 +27,7 @@ export function parseRows(rows) {
         const finalized = rows[block.finalized] || [];
         const deposits = rows[block.deposit] || [];
 
-        for (let col = 0; col < EXCEL_LAYOUT.maxColumns; col++) {
+        for (let col = 0; col < names.length; col++) {
             const name = String(names[col] ?? '').replace(/\*/g, '').trim();
             const target = Number(targets[col]) || 0;
             if (!name || target <= 0) continue;
