@@ -1,6 +1,6 @@
 // Turns state into HTML for everything except the two canvases (charts.js).
 
-import { GROUPS, STATUS_LEVELS, SYNC_WORKFLOW_URL, TIERS } from './config.js';
+import { GROUPS, STATUS_LEVELS, TIERS } from './config.js';
 import { closestToTarget, pctOf, remainingOf, sortByGroup, statusOf, tierRange } from './metrics.js';
 import { canEdit } from './state.js';
 import { escapeHtml, formatCurrency, formatCurrencyWhole, formatDateTime, formatPercent, formatTime } from './utils.js';
@@ -33,7 +33,6 @@ export function renderChrome(state) {
 }
 
 function renderSyncStatus(sync) {
-    document.getElementById('sync-now-link').href = SYNC_WORKFLOW_URL;
     const el = document.getElementById('sync-status');
     el.classList.toggle('is-failed', !!sync && !sync.ok);
     el.classList.toggle('is-idle', !sync);

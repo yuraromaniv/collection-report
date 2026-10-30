@@ -1,12 +1,81 @@
-// Getting numbers in by hand: Excel import and the SharePoint link setting.
-// SharePoint sync runs on GitHub Actions when "Sync now" is pressed (tools/sync.js).
+// Getting numbers in: "Sync now" (SharePoint), manual Excel import, settings.
+// The SharePoint download itself runs on GitHub Actions (tools/sync.js).
 
 /* global XLSX */
-import { getSharePointUrl, saveLocations, setSharePointUrl } from './data.js';
+import { GITHUB_REPO, SYNC_WORKFLOW_FILE, SYNC_WORKFLOW_URL } from './config.js';
+import { getSettings, saveLocations, saveSettings } from './data.js';
 import { dataSheetNames, findLocation, mergeImported, parseRows, pickReportSheet, sheetRows } from './excel.js';
 import { pctOf, statusOf } from './metrics.js';
-import { canEdit, state } from './state.js';
+import { canEdit, onStateChange, state } from './state.js';
 import { closeModal, escapeHtml, formatCurrency, openModal, showToast } from './utils.js';
+
+// ─── Sync now ────────────────────────────────────────────────────────────────
+
+const SYNC_TIMEOUT_MS = 5 * 60 * 1000;
+
+async function startWorkflow(token) {
+    const response = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${SYNC_WORKFLOW_FILE}/dispatches`,
+        {
+            method: 'POST',
+            headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ ref: 'main' })
+        }
+    );
+    if (response.status === 204) return;
+    if (response.status === 401) throw new Error('the GitHub token is invalid or expired — create a new one and paste it in Settings');
+    if (response.status === 403 || response.status === 404) {
+        throw new Error('the GitHub token cannot run the workflow — it needs “Actions: Read and write” on collection-report');
+    }
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || `GitHub HTTP ${response.status}`);
+}
+
+// tools/sync.js writes meta/lastSync at the end of every run (success or not).
+function waitForSyncResult(previousAt) {
+    return new Promise(resolve => {
+        const timer = setTimeout(() => {
+            stop();
+            resolve(null);
+        }, SYNC_TIMEOUT_MS);
+        const stop = onStateChange(s => {
+            if (s.lastSync && s.lastSync.at !== previousAt) {
+                clearTimeout(timer);
+                stop();
+                resolve(s.lastSync);
+            }
+        });
+    });
+}
+
+export async function syncNow() {
+    if (!canEdit()) return;
+    const button = document.getElementById('sync-now-btn');
+    if (button.classList.contains('is-syncing')) return;
+
+    const { githubToken } = await getSettings();
+    if (!githubToken) {
+        window.open(SYNC_WORKFLOW_URL, '_blank', 'noopener');
+        showToast('Run the workflow on GitHub — or add a GitHub token in Settings to sync in one click', 'info', 8000);
+        return;
+    }
+
+    button.classList.add('is-syncing');
+    try {
+        const previousAt = state.lastSync?.at;
+        await startWorkflow(githubToken);
+        showToast('Syncing from SharePoint… usually under a minute', 'loading', 0);
+
+        const sync = await waitForSyncResult(previousAt);
+        if (!sync) showToast('Sync is taking longer than usual — check Actions on GitHub', 'info', 10000);
+        else if (sync.ok) showToast(`Synced — ${sync.sheet} sheet`, 'success', 6000);
+        else showToast(`Sync failed: ${sync.message}`, 'error', 12000);
+    } catch (error) {
+        showToast(`Could not start the sync: ${error.message}`, 'error', 12000);
+    } finally {
+        button.classList.remove('is-syncing');
+    }
+}
 
 let workbook = null;
 
@@ -125,18 +194,23 @@ export async function openSettings() {
     settingsForm.reset();
     openModal('settings-modal');
     try {
-        settingsForm.elements.sharepointUrl.value = await getSharePointUrl();
+        const settings = await getSettings();
+        settingsForm.elements.sharepointUrl.value = settings.sharepointUrl;
+        settingsForm.elements.githubToken.value = settings.githubToken;
     } catch (error) {
         showToast(`Could not load settings: ${error.message}`, 'error', 8000);
     }
 }
 
-async function saveSettings(event) {
+async function onSettingsSubmit(event) {
     event.preventDefault();
     try {
-        await setSharePointUrl(settingsForm.elements.sharepointUrl.value.trim());
+        await saveSettings({
+            sharepointUrl: settingsForm.elements.sharepointUrl.value.trim(),
+            githubToken: settingsForm.elements.githubToken.value.trim()
+        });
         closeModal('settings-modal');
-        showToast('Settings saved — Sync now will use this link', 'success', 6000);
+        showToast('Settings saved', 'success');
     } catch (error) {
         showToast(`Could not save settings: ${error.message}`, 'error', 8000);
     }
@@ -162,5 +236,5 @@ export function initImporter() {
     sheetSelect.addEventListener('change', renderPreview);
     document.getElementById('import-back').addEventListener('click', resetImport);
     document.getElementById('import-confirm').addEventListener('click', confirmImport);
-    settingsForm.addEventListener('submit', saveSettings);
+    settingsForm.addEventListener('submit', onSettingsSubmit);
 }

@@ -17,8 +17,10 @@ export function setState(patch) {
     listeners.forEach(fn => fn(state));
 }
 
+// Returns a function that stops listening.
 export function onStateChange(fn) {
     listeners.add(fn);
+    return () => listeners.delete(fn);
 }
 
 export const isAdmin = () => !!state.user;

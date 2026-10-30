@@ -5,7 +5,7 @@ import {
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
-    getDatabase, ref, onValue, get, set, update, push, remove
+    getDatabase, ref, onValue, get, update, push, remove
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 import { FIREBASE_CONFIG } from './config.js';
@@ -107,8 +107,12 @@ export const deleteReport = key => remove(ref(db, `history/${key}`));
 
 // ─── Settings (admin-only in the database rules) ─────────────────────────────
 
-export async function getSharePointUrl() {
-    return (await get(ref(db, 'config/sharepointUrl'))).val() || '';
+export async function getSettings() {
+    const config = (await get(ref(db, 'config'))).val() || {};
+    return { sharepointUrl: config.sharepointUrl || '', githubToken: config.githubToken || '' };
 }
 
-export const setSharePointUrl = url => set(ref(db, 'config/sharepointUrl'), url || null);
+// Empty values remove the setting.
+export function saveSettings({ sharepointUrl, githubToken }) {
+    return update(ref(db, 'config'), { sharepointUrl: sharepointUrl || null, githubToken: githubToken || null });
+}

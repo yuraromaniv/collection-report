@@ -70,7 +70,7 @@ npm start            # http://localhost:8080
 ## Синхронізація з SharePoint (тільки вручну)
 
 Дані оновлюються **лише коли адмін натискає Sync now** — автоматичного розкладу немає.
-Кнопка відкриває GitHub Actions ([.github/workflows/sync-sharepoint.yml](.github/workflows/sync-sharepoint.yml)), там — **Run workflow**. Запуск:
+Кнопка через GitHub API запускає [.github/workflows/sync-sharepoint.yml](.github/workflows/sync-sharepoint.yml) і чекає результат (зазвичай < 1 хв). Без GitHub-токена в Settings кнопка просто відкриває сторінку workflow, де треба натиснути **Run workflow**. Запуск:
 
 1. логіниться у Firebase як адмін;
 2. бере посилання SharePoint із налаштувань сайту;
@@ -87,6 +87,8 @@ npm start            # http://localhost:8080
 | `ADMIN_PASSWORD` | пароль адміна у Firebase       |
 
 Посилання SharePoint має бути типу **«Anyone with the link can view»**.
+
+**Sync now в один клік:** створити [fine-grained token](https://github.com/settings/personal-access-tokens/new) — *Repository access: Only select repositories → collection-report*, *Permissions → Actions: Read and write* — і вставити його на сайті в **Settings → GitHub token**. Токен зберігається в базі (`config/githubToken`, читає тільки адмін). Коли строк дії скінчиться, кнопка покаже помилку — створити новий і замінити.
 
 > Логи Actions у публічному репозиторії публічні — скрипт не друкує ні посилання, ні суми.
 

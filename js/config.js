@@ -34,9 +34,11 @@ export const TIERS = [
 // "Current month" is decided in the clinics' time zone.
 export const REPORT_TIMEZONE = 'America/Chicago';
 
-// SharePoint is synced only on demand, by a GitHub Action
-// (.github/workflows/sync-sharepoint.yml) that "Sync now" opens.
-export const SYNC_WORKFLOW_URL = 'https://github.com/yuraromaniv/collection-report/actions/workflows/sync-sharepoint.yml';
+// SharePoint is synced only on demand, by a GitHub Action that "Sync now"
+// starts through the GitHub API (with the token saved in Settings).
+export const GITHUB_REPO = 'yuraromaniv/collection-report';
+export const SYNC_WORKFLOW_FILE = 'sync-sharepoint.yml';
+export const SYNC_WORKFLOW_URL = `https://github.com/${GITHUB_REPO}/actions/workflows/${SYNC_WORKFLOW_FILE}`;
 
 // Where clinics live in the monthly Excel sheet (0-based row indexes).
 // Each block is a row of clinic names with their numbers in the same column;
